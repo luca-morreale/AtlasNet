@@ -62,7 +62,8 @@ else:
         rx = xx[:, diag_ind, diag_ind].unsqueeze(1).expand_as(xx)
         ry = yy[:, diag_ind, diag_ind].unsqueeze(1).expand_as(yy)
         P = (rx.transpose(2,1) + ry - 2*zz)
-        return torch.min(P, 1)[0], torch.min(P, 2)[0], torch.min(P, 1)[1], torch.min(P, 2)[1]
+        # commented out the indices of the min operation
+        return torch.min(P, 1)[0], torch.min(P, 2)[0] #, torch.min(P, 1)[1], torch.min(P, 2)[1]
 # ========================================================== #
 
 # =============DEFINE stuff for logs ======================================== #
@@ -134,7 +135,7 @@ for epoch in range(opt.nepoch):
     #TRAIN MODE
     train_loss.reset()
     network.train()
-    
+
     # learning rate schedule
     if epoch==100:
         optimizer = optim.Adam(network.parameters(), lr = lrate/10.0)
@@ -148,6 +149,7 @@ for epoch in range(opt.nepoch):
         points = points[:,:,:opt.super_points].contiguous()
         #END SUPER RESOLUTION
         pointsReconstructed  = network(points) #forward pass
+        # it get stucks in the computation of the chamfer distance
         dist1, dist2 = distChamfer(points.transpose(2,1).contiguous(), pointsReconstructed) #loss function
         loss_net = (torch.mean(dist1)) + (torch.mean(dist2))
         loss_net.backward()
